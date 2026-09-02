@@ -227,6 +227,8 @@ export default function WordPractice({
     if (!currentWord || isProcessingRef.current) return;
 
     isProcessingRef.current = true;
+    // Clear spacePressedRef immediately to prevent handleCompositionEnd from calling checkWord again
+    spacePressedRef.current = false;
 
     try {
       if (userInput.trim() === currentWord.word) {
@@ -275,7 +277,6 @@ export default function WordPractice({
         setUserInput('');
       }
     } finally {
-      spacePressedRef.current = false;
       isProcessingRef.current = false;
     }
   }, [currentWord, userInput, filteredWords, availableCharacters, useGeneratedWords, playSound]);
@@ -308,8 +309,8 @@ export default function WordPractice({
 
   const handleCompositionEnd = () => {
     setIsComposing(false);
-    // If space was pressed during IME composition, handle it now
-    if (spacePressedRef.current) {
+    // If space was pressed during IME composition and checkWord isn't already processing, handle it now
+    if (spacePressedRef.current && !isProcessingRef.current) {
       checkWord();
     }
   };

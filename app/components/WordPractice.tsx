@@ -144,6 +144,19 @@ export default function WordPractice({
   const spacePressedRef = useRef(false);
   const isProcessingRef = useRef(false); // Prevent duplicate checkWord() calls
   const isComposingRef = useRef(false); // Use ref instead of state for synchronous updates
+  const debugCountRef = useRef({ checkWordCalls: 0, correctCount: 0, incorrectCount: 0 });
+
+  // Debug: Expose to window for console inspection
+  useEffect(() => {
+    (window as any).debugInfo = {
+      checkWordCalls: debugCountRef.current.checkWordCalls,
+      correctCount: debugCountRef.current.correctCount,
+      incorrectCount: debugCountRef.current.incorrectCount,
+      currentWord: currentWord?.word || 'loading...',
+      userInput,
+      mode,
+    };
+  }, [currentWord?.word, userInput, mode]);
 
   // 사용 가능한 글자 추출
   useEffect(() => {
@@ -229,14 +242,16 @@ export default function WordPractice({
       return;
     }
 
-    console.log('[checkWord] Starting - input:', userInput, 'word:', currentWord.word);
+    debugCountRef.current.checkWordCalls++;
+    console.log('[checkWord] Call #' + debugCountRef.current.checkWordCalls + ' - input:', userInput, 'word:', currentWord.word);
     isProcessingRef.current = true;
     // Clear spacePressedRef immediately to prevent handleCompositionEnd from calling checkWord again
     spacePressedRef.current = false;
 
     try {
       if (userInput.trim() === currentWord.word) {
-        console.log('[checkWord] ✅ CORRECT - calling setStats(correct++)');
+        debugCountRef.current.correctCount++;
+        console.log('[checkWord] ✅ CORRECT - calling setStats(correct++) - Total correct:', debugCountRef.current.correctCount);
         playSound(800, 0.2);
         setFeedback('correct');
         setStats((prev) => ({
@@ -273,7 +288,8 @@ export default function WordPractice({
           setUserInput('');
         }
       } else {
-        console.log('[checkWord] ❌ INCORRECT - calling setStats(incorrect++)');
+        debugCountRef.current.incorrectCount++;
+        console.log('[checkWord] ❌ INCORRECT - calling setStats(incorrect++) - Total incorrect:', debugCountRef.current.incorrectCount);
         playSound(300, 0.2);
         setFeedback('incorrect');
         setStats((prev) => ({
@@ -289,6 +305,7 @@ export default function WordPractice({
   }, [currentWord, userInput, filteredWords, availableCharacters, useGeneratedWords, playSound]);
 
   const handleSubmit = (e: React.FormEvent) => {
+    console.log('[handleSubmit] Form submitted');
     e.preventDefault();
     checkWord();
   };

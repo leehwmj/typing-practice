@@ -474,23 +474,25 @@ export default function WordPractice({
           </p>
         </div>
 
-        <div className="bg-purple-50 dark:bg-purple-900 rounded-lg p-4 sm:p-6 text-center">
+        <div className="bg-blue-50 dark:bg-blue-900 rounded-lg p-4 sm:p-6 text-center">
           <p className="text-gray-600 dark:text-gray-300 text-sm sm:text-base">
-            연습한 단어
+            정확도
           </p>
-          <p className="text-3xl sm:text-4xl font-bold text-purple-600 dark:text-purple-400">
-            {wordsCompleted}
+          <p className="text-3xl sm:text-4xl font-bold text-blue-600 dark:text-blue-400">
+            {accuracy}%
           </p>
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
-        <div className="bg-blue-50 dark:bg-blue-900 rounded-lg p-4 text-center">
-          <p className="text-gray-600 dark:text-gray-300 text-sm">정확도</p>
-          <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-            {accuracy}%
-          </p>
-        </div>
+        {mode === 'general' && (
+          <div className="bg-purple-50 dark:bg-purple-900 rounded-lg p-4 text-center">
+            <p className="text-gray-600 dark:text-gray-300 text-sm">타 수 (분당)</p>
+            <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+              {cpm} CPM
+            </p>
+          </div>
+        )}
 
         <div className="bg-orange-50 dark:bg-orange-900 rounded-lg p-4 text-center">
           <p className="text-gray-600 dark:text-gray-300 text-sm">
@@ -501,15 +503,6 @@ export default function WordPractice({
           </p>
         </div>
       </div>
-
-      {mode === 'general' && (
-        <div className="bg-purple-50 dark:bg-purple-900 rounded-lg p-4 text-center">
-          <p className="text-gray-600 dark:text-gray-300 text-sm">타 수 (분당)</p>
-          <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-            {cpm} CPM
-          </p>
-        </div>
-      )}
 
       <div className="flex justify-center">
         <button

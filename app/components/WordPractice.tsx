@@ -137,13 +137,13 @@ export default function WordPractice({
   const [wordsCompleted, setWordsCompleted] = useState(0);
   const [feedback, setFeedback] = useState<'correct' | 'incorrect' | null>(null);
   const [previousWordLength, setPreviousWordLength] = useState(0);
-  const [isComposing, setIsComposing] = useState(false);
   const [completedCharacters, setCompletedCharacters] = useState(0);
   const [typingSegments, setTypingSegments] = useState<number[]>([]);
   const currentSegmentStartRef = useRef<number | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const spacePressedRef = useRef(false);
   const isProcessingRef = useRef(false); // Prevent duplicate checkWord() calls
+  const isComposingRef = useRef(false); // Use ref instead of state for synchronous updates
 
   // 사용 가능한 글자 추출
   useEffect(() => {
@@ -224,14 +224,19 @@ export default function WordPractice({
   }, [feedback]);
 
   const checkWord = useCallback(() => {
-    if (!currentWord || isProcessingRef.current) return;
+    if (!currentWord || isProcessingRef.current) {
+      console.log('[checkWord] Early return - currentWord:', !!currentWord, 'isProcessing:', isProcessingRef.current);
+      return;
+    }
 
+    console.log('[checkWord] Starting - input:', userInput, 'word:', currentWord.word);
     isProcessingRef.current = true;
     // Clear spacePressedRef immediately to prevent handleCompositionEnd from calling checkWord again
     spacePressedRef.current = false;
 
     try {
       if (userInput.trim() === currentWord.word) {
+        console.log('[checkWord] ✅ CORRECT - calling setStats(correct++)');
         playSound(800, 0.2);
         setFeedback('correct');
         setStats((prev) => ({
@@ -268,6 +273,7 @@ export default function WordPractice({
           setUserInput('');
         }
       } else {
+        console.log('[checkWord] ❌ INCORRECT - calling setStats(incorrect++)');
         playSound(300, 0.2);
         setFeedback('incorrect');
         setStats((prev) => ({
@@ -277,6 +283,7 @@ export default function WordPractice({
         setUserInput('');
       }
     } finally {
+      console.log('[checkWord] Finally block - resetting isProcessing');
       isProcessingRef.current = false;
     }
   }, [currentWord, userInput, filteredWords, availableCharacters, useGeneratedWords, playSound]);
@@ -295,23 +302,32 @@ export default function WordPractice({
     if (e.code === 'Space') {
       e.preventDefault();
       e.stopPropagation();
+      console.log('[handleKeyDown] Space pressed - isComposing:', isComposingRef.current, 'isProcessing:', isProcessingRef.current);
       spacePressedRef.current = true;
       // Only call checkWord if not composing (IME not active)
-      if (!isComposing) {
+      if (!isComposingRef.current) {
+        console.log('[handleKeyDown] Calling checkWord immediately (not composing)');
         checkWord();
+      } else {
+        console.log('[handleKeyDown] Deferring checkWord until composition ends');
       }
     }
   };
 
   const handleCompositionStart = () => {
-    setIsComposing(true);
+    console.log('[handleCompositionStart]');
+    isComposingRef.current = true;
   };
 
   const handleCompositionEnd = () => {
-    setIsComposing(false);
+    console.log('[handleCompositionEnd] spacePressedRef:', spacePressedRef.current, 'isProcessing:', isProcessingRef.current);
+    isComposingRef.current = false;
     // If space was pressed during IME composition and checkWord isn't already processing, handle it now
     if (spacePressedRef.current && !isProcessingRef.current) {
+      console.log('[handleCompositionEnd] Calling checkWord (space was pressed during composition)');
       checkWord();
+    } else {
+      console.log('[handleCompositionEnd] Not calling checkWord - spacePressedRef:', spacePressedRef.current, 'isProcessing:', isProcessingRef.current);
     }
   };
 

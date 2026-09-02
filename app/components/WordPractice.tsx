@@ -145,6 +145,7 @@ export default function WordPractice({
   const isProcessingRef = useRef(false); // Prevent duplicate checkWord() calls
   const isComposingRef = useRef(false); // Use ref instead of state for synchronous updates
   const debugCountRef = useRef({ checkWordCalls: 0, correctCount: 0, incorrectCount: 0 });
+  const isInputDisabledRef = useRef(false); // Prevent rapid-fire Space input
 
   // Debug: Expose to window for console inspection
   useEffect(() => {
@@ -283,9 +284,16 @@ export default function WordPractice({
             currentSegmentStartRef.current = null;
           }
 
+          // Disable input briefly to prevent rapid-fire Space input
+          isInputDisabledRef.current = true;
           setCurrentWord(nextWord);
           setPreviousWordLength(nextWord.word.length);
           setUserInput('');
+
+          // Re-enable input after 300ms (time to read the new word)
+          setTimeout(() => {
+            isInputDisabledRef.current = false;
+          }, 300);
         }
       } else {
         debugCountRef.current.incorrectCount++;
@@ -319,6 +327,13 @@ export default function WordPractice({
     if (e.code === 'Space') {
       e.preventDefault();
       e.stopPropagation();
+
+      // Prevent rapid-fire Space input after new word is loaded
+      if (isInputDisabledRef.current) {
+        console.log('[handleKeyDown] Space ignored - input disabled after word change');
+        return;
+      }
+
       console.log('[handleKeyDown] Space pressed - isComposing:', isComposingRef.current, 'isProcessing:', isProcessingRef.current);
       spacePressedRef.current = true;
       // Only call checkWord if not composing (IME not active)

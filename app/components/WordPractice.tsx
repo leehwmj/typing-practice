@@ -143,6 +143,7 @@ export default function WordPractice({
   const currentSegmentStartRef = useRef<number | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const spacePressedRef = useRef(false);
+  const isProcessingRef = useRef(false); // Prevent duplicate checkWord() calls
 
   // 사용 가능한 글자 추출
   useEffect(() => {
@@ -222,55 +223,62 @@ export default function WordPractice({
     }
   }, [feedback]);
 
-  const checkWord = () => {
-    if (!currentWord) return;
+  const checkWord = useCallback(() => {
+    if (!currentWord || isProcessingRef.current) return;
 
-    if (userInput.trim() === currentWord.word) {
-      playSound(800, 0.2);
-      setFeedback('correct');
-      setStats((prev) => ({
-        ...prev,
-        correct: prev.correct + 1,
-      }));
-      setWordsCompleted((prev) => prev + 1);
-      setCompletedCharacters((prev) => prev + countKoreanJamo(currentWord.word));
+    isProcessingRef.current = true;
 
-      // 다음 단어 (1음절이 2번 연속이 되지 않도록)
-      let nextWord: Word | null = null;
-      let attempts = 0;
-      const maxAttempts = 10;
+    try {
+      if (userInput.trim() === currentWord.word) {
+        playSound(800, 0.2);
+        setFeedback('correct');
+        setStats((prev) => ({
+          ...prev,
+          correct: prev.correct + 1,
+        }));
+        setWordsCompleted((prev) => prev + 1);
+        setCompletedCharacters((prev) => prev + countKoreanJamo(currentWord.word));
 
-      while (
-        (!nextWord ||
-          (currentWord.word.length === 1 && nextWord.word.length === 1)) &&
-        attempts < maxAttempts
-      ) {
-        nextWord = getNextWord(filteredWords, availableCharacters, useGeneratedWords);
-        attempts++;
-      }
+        // 다음 단어 (1음절이 2번 연속이 되지 않도록)
+        let nextWord: Word | null = null;
+        let attempts = 0;
+        const maxAttempts = 10;
 
-      if (nextWord) {
-        // 입력 시간 기록
-        if (currentSegmentStartRef.current) {
-          const duration = Date.now() - currentSegmentStartRef.current;
-          setTypingSegments((prev) => [...prev, duration]);
-          currentSegmentStartRef.current = null;
+        while (
+          (!nextWord ||
+            (currentWord.word.length === 1 && nextWord.word.length === 1)) &&
+          attempts < maxAttempts
+        ) {
+          nextWord = getNextWord(filteredWords, availableCharacters, useGeneratedWords);
+          attempts++;
         }
 
-        setCurrentWord(nextWord);
-        setPreviousWordLength(nextWord.word.length);
+        if (nextWord) {
+          // 입력 시간 기록
+          if (currentSegmentStartRef.current) {
+            const duration = Date.now() - currentSegmentStartRef.current;
+            setTypingSegments((prev) => [...prev, duration]);
+            currentSegmentStartRef.current = null;
+          }
+
+          setCurrentWord(nextWord);
+          setPreviousWordLength(nextWord.word.length);
+          setUserInput('');
+        }
+      } else {
+        playSound(300, 0.2);
+        setFeedback('incorrect');
+        setStats((prev) => ({
+          ...prev,
+          incorrect: prev.incorrect + 1,
+        }));
         setUserInput('');
       }
-    } else {
-      playSound(300, 0.2);
-      setFeedback('incorrect');
-      setStats((prev) => ({
-        ...prev,
-        incorrect: prev.incorrect + 1,
-      }));
-      setUserInput('');
+    } finally {
+      spacePressedRef.current = false;
+      isProcessingRef.current = false;
     }
-  };
+  }, [currentWord, userInput, filteredWords, availableCharacters, useGeneratedWords, playSound]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -287,9 +295,9 @@ export default function WordPractice({
       e.preventDefault();
       e.stopPropagation();
       spacePressedRef.current = true;
+      // Only call checkWord if not composing (IME not active)
       if (!isComposing) {
         checkWord();
-        spacePressedRef.current = false;
       }
     }
   };
@@ -300,8 +308,8 @@ export default function WordPractice({
 
   const handleCompositionEnd = () => {
     setIsComposing(false);
+    // If space was pressed during IME composition, handle it now
     if (spacePressedRef.current) {
-      spacePressedRef.current = false;
       checkWord();
     }
   };

@@ -25,6 +25,12 @@ export default function PracticeBoard({
   const [displayKorean, setDisplayKorean] = useState(true);
   const [displayEnglish, setDisplayEnglish] = useState(false);
 
+  // Refs to avoid stale closures in event listener
+  const currentKeyRef = useRef<string>('');
+  const allKeysRef = useRef<string[]>([]);
+  const soundEnabledRef = useRef<boolean>(true);
+  const keyHistoryRef = useRef<string[]>([]);
+
   useEffect(() => {
     const keys: string[] = [];
     Object.entries(seatSelection).forEach(([seatId, seatState]) => {
@@ -33,12 +39,31 @@ export default function PracticeBoard({
       }
     });
     setAllKeys(keys);
+    allKeysRef.current = keys;
 
     if (keys.length > 0) {
       const randomKey = keys[Math.floor(Math.random() * keys.length)];
       setCurrentKey(randomKey);
+      currentKeyRef.current = randomKey;
     }
   }, [seatSelection]);
+
+  // Update refs when state changes
+  useEffect(() => {
+    currentKeyRef.current = currentKey;
+  }, [currentKey]);
+
+  useEffect(() => {
+    allKeysRef.current = allKeys;
+  }, [allKeys]);
+
+  useEffect(() => {
+    soundEnabledRef.current = soundEnabled;
+  }, [soundEnabled]);
+
+  useEffect(() => {
+    keyHistoryRef.current = keyHistory;
+  }, [keyHistory]);
 
   const getKeyDisplay = useCallback(() => {
     let seatId = '';
@@ -132,7 +157,8 @@ export default function PracticeBoard({
         pressedKey = `shift+${pressedKey}`;
       }
 
-      if (pressedKey === currentKey) {
+      // Use refs to access latest values without recreating listener
+      if (pressedKey === currentKeyRef.current) {
         playSound(800, 0.2); // 맞음: 높은 음
         setFeedback('correct');
         setStats((prev) => ({
@@ -140,12 +166,12 @@ export default function PracticeBoard({
           correct: prev.correct + 1,
         }));
 
-        if (allKeys.length > 0) {
+        if (allKeysRef.current.length > 0) {
           const newKey = getNextRandomKey();
-          setKeyHistory([...keyHistory, currentKey]);
+          setKeyHistory([...keyHistoryRef.current, currentKeyRef.current]);
           setCurrentKey(newKey);
         }
-      } else if (allKeys.includes(pressedKey)) {
+      } else if (allKeysRef.current.includes(pressedKey)) {
         playSound(300, 0.2); // 틀림: 낮은 음
         setFeedback('incorrect');
         setStats((prev) => ({
@@ -155,11 +181,12 @@ export default function PracticeBoard({
       }
     };
 
+    // Register listener once on mount
     window.addEventListener('keydown', handleGlobalKeyPress);
     return () => {
       window.removeEventListener('keydown', handleGlobalKeyPress);
     };
-  }, [currentKey, allKeys, playSound, soundEnabled, getNextRandomKey, keyHistory]);
+  }, [playSound, getNextRandomKey]); // Only playSound and getNextRandomKey in deps
 
   useEffect(() => {
     if (feedback) {

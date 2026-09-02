@@ -321,13 +321,15 @@ export default function WordPractice({
       e.stopPropagation();
 
       console.log('[handleKeyDown] Space pressed - isComposing:', isComposingRef.current, 'isProcessing:', isProcessingRef.current);
-      spacePressedRef.current = true;
+
       // Only call checkWord if not composing AND not already processing
       if (!isComposingRef.current && !isProcessingRef.current) {
         console.log('[handleKeyDown] Calling checkWord immediately (not composing)');
         checkWord();
       } else {
+        // Defer to handleCompositionEnd - set flag but don't call checkWord yet
         console.log('[handleKeyDown] Deferring checkWord until composition ends');
+        spacePressedRef.current = true;
       }
     }
   };

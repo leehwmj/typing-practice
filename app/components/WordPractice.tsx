@@ -245,8 +245,6 @@ export default function WordPractice({
     debugCountRef.current.checkWordCalls++;
     console.log('[checkWord] Call #' + debugCountRef.current.checkWordCalls + ' - input:', userInput, 'word:', currentWord.word);
     isProcessingRef.current = true;
-    // Clear spacePressedRef immediately to prevent handleCompositionEnd from calling checkWord again
-    spacePressedRef.current = false;
 
     try {
       if (userInput.trim() === currentWord.word) {
@@ -320,9 +318,10 @@ export default function WordPractice({
       e.preventDefault();
       e.stopPropagation();
 
-      // Prevent multiple Space keydowns from being processed
+      // If Space is already being processed, ignore this duplicate event
       if (spacePressedRef.current) {
-        console.log('[handleKeyDown] Space already pressed, ignoring duplicate');
+        spacePressedRef.current = false; // Reset for next Space keypress
+        console.log('[handleKeyDown] Space already in progress, resetting and returning');
         return;
       }
       spacePressedRef.current = true;

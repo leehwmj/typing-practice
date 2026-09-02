@@ -320,6 +320,13 @@ export default function WordPractice({
       e.preventDefault();
       e.stopPropagation();
 
+      // Prevent multiple Space keydowns from being processed
+      if (spacePressedRef.current) {
+        console.log('[handleKeyDown] Space already pressed, ignoring duplicate');
+        return;
+      }
+      spacePressedRef.current = true;
+
       console.log('[handleKeyDown] Space pressed - isComposing:', isComposingRef.current, 'isProcessing:', isProcessingRef.current);
 
       // Only call checkWord if not composing AND not already processing
@@ -327,9 +334,7 @@ export default function WordPractice({
         console.log('[handleKeyDown] Calling checkWord immediately (not composing)');
         checkWord();
       } else {
-        // Defer to handleCompositionEnd - set flag but don't call checkWord yet
         console.log('[handleKeyDown] Deferring checkWord until composition ends');
-        spacePressedRef.current = true;
       }
     }
   };

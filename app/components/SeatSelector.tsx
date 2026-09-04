@@ -10,9 +10,11 @@ interface SeatSelectorProps {
   onStart: (selection: SeatSelection) => void;
   onBack?: () => void;
   language?: 'korean' | 'english';
+  includeUppercase?: boolean;
+  onIncludeUppercaseChange?: (checked: boolean) => void;
 }
 
-export default function SeatSelector({ onStart, onBack, language = 'korean' }: SeatSelectorProps) {
+export default function SeatSelector({ onStart, onBack, language = 'korean', includeUppercase = false, onIncludeUppercaseChange }: SeatSelectorProps) {
   const layout = language === 'korean' ? koreanLayout : englishLayout;
   const [selection, setSelection] = useState<SeatSelection>({});
 
@@ -93,6 +95,22 @@ export default function SeatSelector({ onStart, onBack, language = 'korean' }: S
           선택된 키: {getTotalSelectedKeys()}개
         </p>
       </div>
+
+      {language === 'english' && (
+        <div className="flex justify-center">
+          <label className="flex items-center gap-3 cursor-pointer p-4 bg-blue-50 dark:bg-blue-900 rounded-lg">
+            <input
+              type="checkbox"
+              checked={includeUppercase}
+              onChange={(e) => onIncludeUppercaseChange?.(e.target.checked)}
+              className="w-5 h-5 rounded"
+            />
+            <span className="text-base font-semibold text-gray-900 dark:text-white">
+              대문자 포함 (Shift로 입력)
+            </span>
+          </label>
+        </div>
+      )}
 
       <div className="space-y-4">
         {seatsData.seatGroups.map((group) => (

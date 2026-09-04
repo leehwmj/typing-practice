@@ -92,25 +92,12 @@ export default function Home() {
                 </p>
                 <SeatSelector
                   language={language}
+                  includeUppercase={includeUppercase}
+                  onIncludeUppercaseChange={setIncludeUppercase}
                   onStart={handleStartSeatPracticeWithSelection}
                   onBack={() => setMode('language-select')}
                 />
               </div>
-              {language === 'english' && (
-                <div className="flex justify-center">
-                  <label className="flex items-center gap-3 cursor-pointer p-4 bg-blue-50 dark:bg-blue-900 rounded-lg">
-                    <input
-                      type="checkbox"
-                      checked={includeUppercase}
-                      onChange={(e) => setIncludeUppercase(e.target.checked)}
-                      className="w-5 h-5 rounded"
-                    />
-                    <span className="text-base font-semibold text-gray-900 dark:text-white">
-                      대문자 포함 (Shift로 입력)
-                    </span>
-                  </label>
-                </div>
-              )}
             </div>
           )}
           {mode === 'seat-practice' && (

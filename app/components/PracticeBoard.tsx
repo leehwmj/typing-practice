@@ -296,7 +296,7 @@ export default function PracticeBoard({
             <div className="absolute left-0 right-0 h-0.5 bg-gray-400" style={{ top: '80%', transform: 'translateY(-50%)' }} />
 
             {/* Character display */}
-            <div className="text-8xl font-bold text-blue-600 relative z-10">
+            <div className="text-9xl font-bold text-blue-600 relative z-10">
               {display.character}
             </div>
           </div>

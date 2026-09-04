@@ -300,7 +300,7 @@ export default function PracticeBoard({
             )}
 
             {/* Character display */}
-            <div className="text-9xl font-bold font-mono text-blue-600 relative z-10" style={{ fontFamily: 'Monaco, Menlo, "Courier New", monospace', letterSpacing: '0.1em' }}>
+            <div className="text-9xl font-bold font-mono text-blue-600 relative z-10" style={{ fontFamily: 'Consolas, Monaco, Menlo, "Courier New", monospace', letterSpacing: '0.1em' }}>
               {display.character}
             </div>
           </div>

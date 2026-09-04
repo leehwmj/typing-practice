@@ -142,6 +142,7 @@ export default function WordPractice({
   const isProcessingRef = useRef(false); // Prevent duplicate checkWord() calls
   const isComposingRef = useRef(false); // Use ref instead of state for synchronous updates
   const debugCountRef = useRef({ checkWordCalls: 0, correctCount: 0, incorrectCount: 0 });
+  const audioContextRef = useRef<AudioContext | null>(null);
 
   // Debug: Expose to window for console inspection
   useEffect(() => {
@@ -206,7 +207,11 @@ export default function WordPractice({
 
   const playSound = useCallback((frequency: number, duration: number) => {
     try {
-      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      // Create AudioContext once and reuse it to avoid memory leak
+      if (!audioContextRef.current) {
+        audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+      }
+      const audioContext = audioContextRef.current;
       const oscillator = audioContext.createOscillator();
       const gainNode = audioContext.createGain();
 

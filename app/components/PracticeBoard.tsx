@@ -30,6 +30,7 @@ export default function PracticeBoard({
   const allKeysRef = useRef<string[]>([]);
   const soundEnabledRef = useRef<boolean>(true);
   const keyHistoryRef = useRef<string[]>([]);
+  const audioContextRef = useRef<AudioContext | null>(null);
 
   useEffect(() => {
     const keys: string[] = [];
@@ -91,7 +92,11 @@ export default function PracticeBoard({
       if (!soundEnabled) return;
 
       try {
-        const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+        // Create AudioContext once and reuse it to avoid memory leak
+        if (!audioContextRef.current) {
+          audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+        }
+        const audioContext = audioContextRef.current;
         const oscillator = audioContext.createOscillator();
         const gainNode = audioContext.createGain();
 
@@ -159,7 +164,9 @@ export default function PracticeBoard({
 
       // Use refs to access latest values without recreating listener
       if (pressedKey === currentKeyRef.current) {
-        playSound(800, 0.2); // 맞음: 높은 음
+        if (soundEnabledRef.current) {
+          playSound(800, 0.2); // 맞음: 높은 음
+        }
         setFeedback('correct');
         setStats((prev) => ({
           ...prev,
@@ -167,12 +174,29 @@ export default function PracticeBoard({
         }));
 
         if (allKeysRef.current.length > 0) {
-          const newKey = getNextRandomKey();
+          // Generate next key directly without calling getNextRandomKey
+          let randomKey = allKeysRef.current[Math.floor(Math.random() * allKeysRef.current.length)];
+          const history = keyHistoryRef.current;
+
+          // Prevent 3 consecutive same keys
+          if (
+            history.length >= 2 &&
+            history[history.length - 1] === history[history.length - 2] &&
+            history[history.length - 1] === randomKey
+          ) {
+            const otherKeys = allKeysRef.current.filter((k) => k !== randomKey);
+            if (otherKeys.length > 0) {
+              randomKey = otherKeys[Math.floor(Math.random() * otherKeys.length)];
+            }
+          }
+
           setKeyHistory([...keyHistoryRef.current, currentKeyRef.current]);
-          setCurrentKey(newKey);
+          setCurrentKey(randomKey);
         }
       } else if (allKeysRef.current.includes(pressedKey)) {
-        playSound(300, 0.2); // 틀림: 낮은 음
+        if (soundEnabledRef.current) {
+          playSound(300, 0.2); // 틀림: 낮은 음
+        }
         setFeedback('incorrect');
         setStats((prev) => ({
           ...prev,
@@ -181,12 +205,12 @@ export default function PracticeBoard({
       }
     };
 
-    // Register listener once on mount
+    // Register listener once on mount with empty dependency array
     window.addEventListener('keydown', handleGlobalKeyPress);
     return () => {
       window.removeEventListener('keydown', handleGlobalKeyPress);
     };
-  }, [playSound, getNextRandomKey]); // Only playSound and getNextRandomKey in deps
+  }, [playSound]); // Only playSound for audio context creation
 
   useEffect(() => {
     if (feedback) {

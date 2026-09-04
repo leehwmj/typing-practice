@@ -75,6 +75,24 @@
             color: #667eea;
         }
 
+        .search-info {
+            padding: 15px 20px;
+            background: #f0f4ff;
+            border-bottom: 1px solid #e0e0e0;
+            text-align: center;
+        }
+
+        .search-info p {
+            font-size: 15px;
+            color: #333;
+            margin: 0;
+        }
+
+        .search-info strong {
+            color: #667eea;
+            font-weight: 600;
+        }
+
         .controls {
             padding: 20px;
             display: flex;
@@ -199,6 +217,10 @@
                 <div class="label">최대 글자 수</div>
                 <div class="value" id="maxLength">0</div>
             </div>
+        </div>
+
+        <div class="search-info">
+            <p>검색 결과: <strong id="searchCount">0</strong>개</p>
         </div>
 
         <div class="controls">
@@ -506,6 +528,9 @@
             const grid = document.getElementById('wordGrid');
             grid.innerHTML = '';
 
+            // 검색 결과 개수 업데이트
+            document.getElementById('searchCount').textContent = filteredWords.length;
+
             if (filteredWords.length === 0) {
                 grid.innerHTML = '<div class="no-results" style="grid-column: 1/-1"><p>검색 결과가 없습니다</p></div>';
                 return;
@@ -558,6 +583,8 @@
         });
 
         updateStats();
+        // 초기 로드 시 전체 단어 개수 표시
+        document.getElementById('searchCount').textContent = words.length;
         renderWords();
     </script>
 </body>

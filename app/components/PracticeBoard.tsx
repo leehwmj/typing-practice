@@ -86,20 +86,31 @@ export default function PracticeBoard({
   const getKeyDisplay = useCallback(() => {
     let seatId = '';
     let mapping: Record<string, string> = {};
+    let baseKey = currentKey;
 
+    // Handle uppercase keys (shift+X format)
+    if (currentKey.startsWith('shift+')) {
+      baseKey = currentKey.slice(6);
+    }
+
+    // Find the seat and mapping for the base key
     for (const [id, seatInfo] of Object.entries(
       layout.seats
     )) {
-      if (seatInfo.keys.includes(currentKey)) {
+      if (seatInfo.keys.includes(baseKey)) {
         seatId = id;
         mapping = seatInfo.mapping as Record<string, string>;
         break;
       }
     }
 
+    // Get the character (uppercase if shift key)
+    const char = mapping[baseKey] || baseKey;
+    const character = currentKey.startsWith('shift+') ? char.toUpperCase() : char;
+
     return {
       key: currentKey,
-      character: mapping[currentKey] || currentKey,
+      character,
       seatId,
     };
   }, [currentKey, layout]);

@@ -290,10 +290,14 @@ export default function PracticeBoard({
 
         <div className="space-y-4">
           <div className="w-80 h-56 flex items-center justify-center relative mx-auto rounded bg-white">
-            {/* Horizontal ruled lines */}
-            <div className="absolute left-0 right-0 h-0.5 bg-gray-400" style={{ top: '30%', transform: 'translateY(-50%)' }} />
-            <div className="absolute left-0 right-0 h-0.5 bg-gray-400" style={{ top: '50%', transform: 'translateY(-50%)' }} />
-            <div className="absolute left-0 right-0 h-0.5 bg-gray-400" style={{ top: '70%', transform: 'translateY(-50%)' }} />
+            {/* Horizontal ruled lines - English only */}
+            {language === 'english' && (
+              <>
+                <div className="absolute left-0 right-0 h-0.5 bg-gray-400" style={{ top: '30%', transform: 'translateY(-50%)' }} />
+                <div className="absolute left-0 right-0 h-0.5 bg-gray-400" style={{ top: '50%', transform: 'translateY(-50%)' }} />
+                <div className="absolute left-0 right-0 h-0.5 bg-gray-400" style={{ top: '70%', transform: 'translateY(-50%)' }} />
+              </>
+            )}
 
             {/* Character display */}
             <div className="text-9xl font-bold text-blue-600 relative z-10">

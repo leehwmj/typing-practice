@@ -290,30 +290,30 @@ export default function PracticeBoard({
 
         <div className="space-y-4">
           <div
-            className="w-80 h-56 flex items-center justify-center relative mx-auto rounded bg-white dark:bg-gray-700"
+            className="w-80 h-56 flex items-center justify-center relative mx-auto rounded bg-white"
             style={{
               backgroundImage: `
                 repeating-linear-gradient(
                   to bottom,
                   transparent,
-                  transparent calc(25% - 2px),
-                  #9ca3af 2px,
-                  #9ca3af 4px,
-                  transparent 4px,
+                  transparent calc(25% - 1.5px),
+                  #6b7280 1.5px,
+                  #6b7280 3px,
+                  transparent 3px,
                   transparent 50%,
-                  transparent calc(50% - 2px),
-                  #9ca3af 2px,
-                  #9ca3af 4px,
-                  transparent 4px,
+                  transparent calc(50% - 1.5px),
+                  #6b7280 1.5px,
+                  #6b7280 3px,
+                  transparent 3px,
                   transparent 75%,
-                  transparent calc(75% - 2px),
-                  #9ca3af 2px,
-                  #9ca3af 4px
+                  transparent calc(75% - 1.5px),
+                  #6b7280 1.5px,
+                  #6b7280 3px
                 )
               `,
             }}
           >
-            <div className="text-8xl font-bold text-blue-600 dark:text-blue-400">
+            <div className="text-8xl font-bold text-blue-600">
               {display.character}
             </div>
           </div>

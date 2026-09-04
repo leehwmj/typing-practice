@@ -70,15 +70,12 @@ const combineHangul = (consonant: string, vowel: string, finalConsonant?: string
   return String.fromCharCode(code);
 };
 
-const generateRandomWord = (availableCharacters: string[]): Word => {
+const generateRandomWord = (availableCharacters: string[]): Word | null => {
   const consonants = availableCharacters.filter((c) => !isVowel(c));
   const vowels = availableCharacters.filter((c) => isVowel(c));
 
   if (consonants.length === 0 || vowels.length === 0) {
-    return {
-      word: '',
-      characters: [],
-    };
+    return null;
   }
 
   const wordChars: string[] = [];
@@ -295,6 +292,8 @@ export default function WordPractice({
           incorrect: prev.incorrect + 1,
         }));
         setUserInput('');
+        // Reset timing for next word attempt to prevent CPM inflation
+        currentSegmentStartRef.current = null;
       }
     } finally {
       console.log('[checkWord] Finally block - resetting isProcessing');
@@ -349,6 +348,7 @@ export default function WordPractice({
     // If space was pressed during IME composition and checkWord isn't already processing, handle it now
     if (spacePressedRef.current && !isProcessingRef.current) {
       console.log('[handleCompositionEnd] Calling checkWord (space was pressed during composition)');
+      spacePressedRef.current = false;
       checkWord();
     } else {
       console.log('[handleCompositionEnd] Not calling checkWord - spacePressedRef:', spacePressedRef.current, 'isProcessing:', isProcessingRef.current);

@@ -151,7 +151,12 @@ export default function PracticeBoard({
       Period: '.',
       Slash: '/',
     };
-    return map[code] || code;
+    const result = map[code] || code;
+    // Debug logging for key mapping
+    if (code === 'Semicolon' || code === 'KeyJ' || code === 'KeyK' || code === 'KeyL') {
+      console.log(`[codeToKey] code: ${code} → key: ${result}, current: ${currentKeyRef.current}, match: ${result === currentKeyRef.current}`);
+    }
+    return result;
   };
 
   useEffect(() => {
@@ -161,6 +166,8 @@ export default function PracticeBoard({
       if (e.shiftKey) {
         pressedKey = `shift+${pressedKey}`;
       }
+
+      console.log(`[handleGlobalKeyPress] pressed: ${pressedKey}, current: ${currentKeyRef.current}, all: [${allKeysRef.current}]`);
 
       // Use refs to access latest values without recreating listener
       if (pressedKey === currentKeyRef.current) {

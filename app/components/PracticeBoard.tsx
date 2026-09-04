@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import koreanLayout from '@/data/korean-layout.json';
+import englishLayout from '@/data/english-layout.json';
 import type { SeatSelection, KeyStats } from '../types';
 
 interface PracticeBoardProps {
@@ -17,6 +18,8 @@ export default function PracticeBoard({
   language = 'korean',
   onBack,
 }: PracticeBoardProps) {
+  const layout = language === 'korean' ? koreanLayout : englishLayout;
+
   const [stats, setStats] = useState<KeyStats>({
     correct: 0,
     incorrect: 0,
@@ -85,7 +88,7 @@ export default function PracticeBoard({
     let mapping: Record<string, string> = {};
 
     for (const [id, seatInfo] of Object.entries(
-      koreanLayout.seats
+      layout.seats
     )) {
       if (seatInfo.keys.includes(currentKey)) {
         seatId = id;
@@ -96,10 +99,10 @@ export default function PracticeBoard({
 
     return {
       key: currentKey,
-      korean: mapping[currentKey] || currentKey,
+      character: mapping[currentKey] || currentKey,
       seatId,
     };
-  }, [currentKey]);
+  }, [currentKey, layout]);
 
   const playSound = useCallback(
     (frequency: number, duration: number) => {
@@ -250,7 +253,7 @@ export default function PracticeBoard({
     return Object.entries(seatSelection)
       .filter(([_, state]) => state.selected)
       .map(([seatId, _]) => {
-        const seat = koreanLayout.seats[seatId as keyof typeof koreanLayout.seats];
+        const seat = layout.seats[seatId as keyof typeof layout.seats];
         return seat?.label || seatId;
       })
       .join(', ');

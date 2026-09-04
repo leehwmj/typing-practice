@@ -39,11 +39,13 @@ export default function PracticeBoard({
         keys.push(...Array.from(seatState.selectedKeys));
       }
     });
+    console.log('[PracticeBoard] Selected keys:', keys);
     setAllKeys(keys);
     allKeysRef.current = keys;
 
     if (keys.length > 0) {
       const randomKey = keys[Math.floor(Math.random() * keys.length)];
+      console.log('[PracticeBoard] Current key:', randomKey);
       setCurrentKey(randomKey);
       currentKeyRef.current = randomKey;
     }
@@ -161,13 +163,15 @@ export default function PracticeBoard({
 
   useEffect(() => {
     const handleGlobalKeyPress = (e: KeyboardEvent) => {
+      console.log(`[handleGlobalKeyPress] RAW - code: ${e.code}, key: ${e.key}, shiftKey: ${e.shiftKey}`);
+
       let pressedKey = codeToKey(e.code);
 
       if (e.shiftKey) {
         pressedKey = `shift+${pressedKey}`;
       }
 
-      console.log(`[handleGlobalKeyPress] pressed: ${pressedKey}, current: ${currentKeyRef.current}, all: [${allKeysRef.current}]`);
+      console.log(`[handleGlobalKeyPress] converted - pressed: "${pressedKey}", current: "${currentKeyRef.current}", all: [${allKeysRef.current}], match: ${pressedKey === currentKeyRef.current}`);
 
       // Use refs to access latest values without recreating listener
       if (pressedKey === currentKeyRef.current) {

@@ -39,13 +39,11 @@ export default function PracticeBoard({
         keys.push(...Array.from(seatState.selectedKeys));
       }
     });
-    console.log('[PracticeBoard] Selected keys:', keys);
     setAllKeys(keys);
     allKeysRef.current = keys;
 
     if (keys.length > 0) {
       const randomKey = keys[Math.floor(Math.random() * keys.length)];
-      console.log('[PracticeBoard] Current key:', randomKey);
       setCurrentKey(randomKey);
       currentKeyRef.current = randomKey;
     }
@@ -144,6 +142,7 @@ export default function PracticeBoard({
     const map: Record<string, string> = {
       KeyA: 'a', KeyS: 's', KeyD: 'd', KeyF: 'f',
       KeyG: 'g', KeyH: 'h', KeyT: 't', KeyB: 'b',
+      KeyJ: 'j', KeyK: 'k', KeyL: 'l',
       KeyQ: 'q', KeyW: 'w', KeyE: 'e', KeyR: 'r',
       KeyU: 'u', KeyI: 'i', KeyO: 'o', KeyP: 'p',
       KeyZ: 'z', KeyX: 'x', KeyC: 'c', KeyV: 'v',
@@ -153,25 +152,16 @@ export default function PracticeBoard({
       Period: '.',
       Slash: '/',
     };
-    const result = map[code] || code;
-    // Debug logging for key mapping
-    if (code === 'Semicolon' || code === 'KeyJ' || code === 'KeyK' || code === 'KeyL') {
-      console.log(`[codeToKey] code: ${code} → key: ${result}, current: ${currentKeyRef.current}, match: ${result === currentKeyRef.current}`);
-    }
-    return result;
+    return map[code] || code;
   };
 
   useEffect(() => {
     const handleGlobalKeyPress = (e: KeyboardEvent) => {
-      console.log(`[handleGlobalKeyPress] RAW - code: ${e.code}, key: ${e.key}, shiftKey: ${e.shiftKey}`);
-
       let pressedKey = codeToKey(e.code);
 
       if (e.shiftKey) {
         pressedKey = `shift+${pressedKey}`;
       }
-
-      console.log(`[handleGlobalKeyPress] converted - pressed: "${pressedKey}", current: "${currentKeyRef.current}", all: [${allKeysRef.current}], match: ${pressedKey === currentKeyRef.current}`);
 
       // Use refs to access latest values without recreating listener
       if (pressedKey === currentKeyRef.current) {

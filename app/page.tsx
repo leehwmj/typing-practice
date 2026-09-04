@@ -86,6 +86,16 @@ export default function Home() {
           )}
           {mode === 'seat-select' && (
             <div className="space-y-6">
+              <div>
+                <p className="text-center text-gray-600 dark:text-gray-400 mb-4">
+                  연습할 자리를 선택하세요
+                </p>
+                <SeatSelector
+                  language={language}
+                  onStart={handleStartSeatPracticeWithSelection}
+                  onBack={() => setMode('language-select')}
+                />
+              </div>
               {language === 'english' && (
                 <div className="flex justify-center">
                   <label className="flex items-center gap-3 cursor-pointer p-4 bg-blue-50 dark:bg-blue-900 rounded-lg">
@@ -101,16 +111,6 @@ export default function Home() {
                   </label>
                 </div>
               )}
-              <div>
-                <p className="text-center text-gray-600 dark:text-gray-400 mb-4">
-                  연습할 자리를 선택하세요
-                </p>
-                <SeatSelector
-                  language={language}
-                  onStart={handleStartSeatPracticeWithSelection}
-                  onBack={() => setMode('language-select')}
-                />
-              </div>
             </div>
           )}
           {mode === 'seat-practice' && (

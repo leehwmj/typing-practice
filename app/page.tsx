@@ -5,16 +5,27 @@ import SeatSelector from './components/SeatSelector';
 import PracticeBoard from './components/PracticeBoard';
 import WordPracticeMode from './components/WordPracticeMode';
 import WordPractice from './components/WordPractice';
+import koreanLayout from '@/data/korean-layout.json';
+import englishLayout from '@/data/english-layout.json';
 import type { SeatSelection } from './types';
 
-type Mode = 'main' | 'seat-select' | 'seat-practice' | 'word-practice-mode' | 'word-seat-select' | 'word-practice';
+type Mode = 'main' | 'language-select' | 'seat-select' | 'seat-practice' | 'word-practice-mode' | 'word-seat-select' | 'word-practice';
+type Language = 'korean' | 'english';
 
 export default function Home() {
   const [mode, setMode] = useState<Mode>('main');
+  const [language, setLanguage] = useState<Language>('korean');
+  const [includeUppercase, setIncludeUppercase] = useState(false);
   const [seatSelection, setSeatSelection] = useState<SeatSelection>({});
   const [wordPracticeMode, setWordPracticeMode] = useState<'linked' | 'general'>('linked');
 
   const handleSelectSeatMode = () => {
+    setMode('language-select');
+  };
+
+  const handleSelectLanguage = (lang: Language) => {
+    setLanguage(lang);
+    setIncludeUppercase(false); // Reset uppercase option
     setMode('seat-select');
   };
 
@@ -66,20 +77,45 @@ export default function Home() {
               onWordPractice={handleStartWordPracticeModeSelect}
             />
           )}
+          {mode === 'language-select' && (
+            <LanguageSelector
+              onSelectKorean={() => handleSelectLanguage('korean')}
+              onSelectEnglish={() => handleSelectLanguage('english')}
+              onBack={handleBackToMain}
+            />
+          )}
           {mode === 'seat-select' && (
-            <div>
-              <p className="text-center text-gray-600 dark:text-gray-400 mb-4">
-                연습할 자리를 선택하세요
-              </p>
-              <SeatSelector
-                onStart={handleStartSeatPracticeWithSelection}
-                onBack={handleBackToMain}
-              />
+            <div className="space-y-6">
+              <div>
+                <p className="text-center text-gray-600 dark:text-gray-400 mb-4">
+                  연습할 자리를 선택하세요
+                </p>
+                <SeatSelector
+                  onStart={handleStartSeatPracticeWithSelection}
+                  onBack={() => setMode('language-select')}
+                />
+              </div>
+              {language === 'english' && (
+                <div className="flex justify-center">
+                  <label className="flex items-center gap-3 cursor-pointer p-4 bg-blue-50 dark:bg-blue-900 rounded-lg">
+                    <input
+                      type="checkbox"
+                      checked={includeUppercase}
+                      onChange={(e) => setIncludeUppercase(e.target.checked)}
+                      className="w-5 h-5 rounded"
+                    />
+                    <span className="text-base font-semibold text-gray-900 dark:text-white">
+                      대문자 포함 (Shift로 입력)
+                    </span>
+                  </label>
+                </div>
+              )}
             </div>
           )}
           {mode === 'seat-practice' && (
             <PracticeBoard
               seatSelection={seatSelection}
+              includeUppercase={includeUppercase}
               onBack={handleBackToMain}
             />
           )}
@@ -153,6 +189,59 @@ function ModeSelector({ onSeatPractice, onWordPractice }: ModeSelectorProps) {
           <p className="text-sm text-gray-600 dark:text-gray-400">
             단어를 입력해서 연습하기
           </p>
+        </button>
+      </div>
+    </div>
+  );
+}
+
+interface LanguageSelectorProps {
+  onSelectKorean: () => void;
+  onSelectEnglish: () => void;
+  onBack: () => void;
+}
+
+function LanguageSelector({ onSelectKorean, onSelectEnglish, onBack }: LanguageSelectorProps) {
+  return (
+    <div className="space-y-6">
+      <div className="text-center space-y-2">
+        <p className="text-lg sm:text-xl text-gray-700 dark:text-gray-300">
+          자리 연습할 언어를 선택하세요
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <button
+          onClick={onSelectKorean}
+          className="p-6 bg-red-50 dark:bg-red-900 rounded-lg hover:bg-red-100 dark:hover:bg-red-800 transition-colors border-2 border-red-200 dark:border-red-700"
+        >
+          <p className="text-2xl font-bold text-red-700 dark:text-red-300 mb-2">
+            한글
+          </p>
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            한글 자모 자리 연습
+          </p>
+        </button>
+
+        <button
+          onClick={onSelectEnglish}
+          className="p-6 bg-purple-50 dark:bg-purple-900 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-800 transition-colors border-2 border-purple-200 dark:border-purple-700"
+        >
+          <p className="text-2xl font-bold text-purple-700 dark:text-purple-300 mb-2">
+            English
+          </p>
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            영문 소문자 자리 연습
+          </p>
+        </button>
+      </div>
+
+      <div className="flex justify-center pt-4">
+        <button
+          onClick={onBack}
+          className="px-6 py-2 sm:px-8 sm:py-3 bg-gray-600 hover:bg-gray-700 text-white font-bold rounded-lg transition-colors"
+        >
+          뒤로
         </button>
       </div>
     </div>

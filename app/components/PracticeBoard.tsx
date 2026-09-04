@@ -6,11 +6,13 @@ import type { SeatSelection, KeyStats } from '../types';
 
 interface PracticeBoardProps {
   seatSelection: SeatSelection;
+  includeUppercase?: boolean;
   onBack: () => void;
 }
 
 export default function PracticeBoard({
   seatSelection,
+  includeUppercase = false,
   onBack,
 }: PracticeBoardProps) {
   const [stats, setStats] = useState<KeyStats>({
@@ -164,7 +166,10 @@ export default function PracticeBoard({
       }
 
       // Use refs to access latest values without recreating listener
-      if (pressedKey === currentKeyRef.current) {
+      const isCorrect = pressedKey === currentKeyRef.current ||
+        (includeUppercase && pressedKey === `shift+${currentKeyRef.current}`);
+
+      if (isCorrect) {
         if (soundEnabledRef.current) {
           playSound(800, 0.2); // 맞음: 높은 음
         }
@@ -194,7 +199,8 @@ export default function PracticeBoard({
           setKeyHistory([...keyHistoryRef.current, currentKeyRef.current]);
           setCurrentKey(randomKey);
         }
-      } else if (allKeysRef.current.includes(pressedKey)) {
+      } else if (allKeysRef.current.includes(pressedKey) ||
+                 (includeUppercase && allKeysRef.current.some(k => pressedKey === `shift+${k}`))) {
         if (soundEnabledRef.current) {
           playSound(300, 0.2); // 틀림: 낮은 음
         }

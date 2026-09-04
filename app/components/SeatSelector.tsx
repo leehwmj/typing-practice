@@ -2,32 +2,35 @@
 
 import { useState, useEffect } from 'react';
 import koreanLayout from '@/data/korean-layout.json';
+import englishLayout from '@/data/english-layout.json';
 import seatsData from '@/data/seats.json';
 import type { SeatSelection } from '../types';
 
 interface SeatSelectorProps {
   onStart: (selection: SeatSelection) => void;
   onBack?: () => void;
+  language?: 'korean' | 'english';
 }
 
-export default function SeatSelector({ onStart, onBack }: SeatSelectorProps) {
+export default function SeatSelector({ onStart, onBack, language = 'korean' }: SeatSelectorProps) {
+  const layout = language === 'korean' ? koreanLayout : englishLayout;
   const [selection, setSelection] = useState<SeatSelection>({});
 
   useEffect(() => {
     const initialSelection: SeatSelection = {};
-    Object.keys(koreanLayout.seats).forEach((seatId) => {
+    Object.keys(layout.seats).forEach((seatId) => {
       initialSelection[seatId] = {
         selected: false,
         selectedKeys: new Set(),
       };
     });
     setSelection(initialSelection);
-  }, []);
+  }, [layout]);
 
   const handleSeatToggle = (seatId: string) => {
     setSelection((prev) => {
       const newSelection = { ...prev };
-      const seat = koreanLayout.seats[seatId as keyof typeof koreanLayout.seats];
+      const seat = layout.seats[seatId as keyof typeof layout.seats];
 
       if (newSelection[seatId].selected) {
         newSelection[seatId] = {
@@ -101,7 +104,7 @@ export default function SeatSelector({ onStart, onBack }: SeatSelectorProps) {
             <div className="space-y-3">
               {group.seats.map((seatId) => {
                 const seat =
-                  koreanLayout.seats[seatId as keyof typeof koreanLayout.seats];
+                  layout.seats[seatId as keyof typeof layout.seats];
                 const seatState = selection[seatId];
 
                 if (!seatState) return null;
@@ -128,7 +131,10 @@ export default function SeatSelector({ onStart, onBack }: SeatSelectorProps) {
                       <div className="ml-8 grid grid-cols-2 sm:grid-cols-3 gap-2">
                         {seat.keys.map((key) => {
                           const mapping = seat.mapping as Record<string, string>;
-                          const korean = mapping[key] || key;
+                          const displayValue = mapping[key] || key;
+                          // Korean mode: show only Korean, English mode: show only English
+                          const showKey = language === 'english' ? displayValue : '';
+                          const showKorean = language === 'korean' ? displayValue : '';
                           return (
                             <label
                               key={key}
@@ -139,13 +145,16 @@ export default function SeatSelector({ onStart, onBack }: SeatSelectorProps) {
                                 checked={seatState.selectedKeys.has(key)}
                                 onChange={() => handleKeyToggle(seatId, key)}
                                 className="w-4 h-4 rounded"
-                                aria-label={`${key} (${korean}) 선택`}
+                                aria-label={`${displayValue} 선택`}
                               />
                               <span className="text-sm text-gray-700 dark:text-gray-300">
-                                {key}{' '}
-                                <span className="text-xs text-blue-600 dark:text-blue-400">
-                                  ({korean})
-                                </span>
+                                {language === 'english' ? (
+                                  displayValue
+                                ) : (
+                                  <>
+                                    {showKorean}
+                                  </>
+                                )}
                               </span>
                             </label>
                           );

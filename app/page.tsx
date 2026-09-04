@@ -91,6 +91,7 @@ export default function Home() {
                   연습할 자리를 선택하세요
                 </p>
                 <SeatSelector
+                  language={language}
                   onStart={handleStartSeatPracticeWithSelection}
                   onBack={() => setMode('language-select')}
                 />
@@ -115,6 +116,7 @@ export default function Home() {
           {mode === 'seat-practice' && (
             <PracticeBoard
               seatSelection={seatSelection}
+              language={language}
               includeUppercase={includeUppercase}
               onBack={handleBackToMain}
             />

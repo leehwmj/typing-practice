@@ -7,12 +7,14 @@ import type { SeatSelection, KeyStats } from '../types';
 interface PracticeBoardProps {
   seatSelection: SeatSelection;
   includeUppercase?: boolean;
+  language?: 'korean' | 'english';
   onBack: () => void;
 }
 
 export default function PracticeBoard({
   seatSelection,
   includeUppercase = false,
+  language = 'korean',
   onBack,
 }: PracticeBoardProps) {
   const [stats, setStats] = useState<KeyStats>({
@@ -24,8 +26,6 @@ export default function PracticeBoard({
   const [feedback, setFeedback] = useState<'correct' | 'incorrect' | null>(null);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [keyHistory, setKeyHistory] = useState<string[]>([]);
-  const [displayKorean, setDisplayKorean] = useState(true);
-  const [displayEnglish, setDisplayEnglish] = useState(false);
 
   // Refs to avoid stale closures in event listener
   const currentKeyRef = useRef<string>('');
@@ -41,6 +41,18 @@ export default function PracticeBoard({
         keys.push(...Array.from(seatState.selectedKeys));
       }
     });
+
+    // If includeUppercase, add uppercase versions of lowercase letters
+    if (includeUppercase) {
+      const uppercaseKeys: string[] = [];
+      keys.forEach((key) => {
+        if (!key.startsWith('shift+') && /^[a-z]$/.test(key)) {
+          uppercaseKeys.push(`shift+${key}`);
+        }
+      });
+      keys.push(...uppercaseKeys);
+    }
+
     setAllKeys(keys);
     allKeysRef.current = keys;
 
@@ -49,7 +61,7 @@ export default function PracticeBoard({
       setCurrentKey(randomKey);
       currentKeyRef.current = randomKey;
     }
-  }, [seatSelection]);
+  }, [seatSelection, includeUppercase]);
 
   // Update refs when state changes
   useEffect(() => {
@@ -258,44 +270,14 @@ export default function PracticeBoard({
           feedback === 'correct' ? 'animate-border-flash-green' : feedback === 'incorrect' ? 'animate-border-flash-red' : ''
         }`}
       >
-        <div className="flex justify-center gap-2">
-          <button
-            onClick={() => setDisplayKorean(!displayKorean)}
-            className={`px-3 py-1 rounded text-sm font-semibold transition-colors ${
-              displayKorean
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
-            }`}
-          >
-            한글
-          </button>
-          <button
-            onClick={() => setDisplayEnglish(!displayEnglish)}
-            className={`px-3 py-1 rounded text-sm font-semibold transition-colors ${
-              displayEnglish
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
-            }`}
-          >
-            영어
-          </button>
-        </div>
-
         <h2 className="text-lg sm:text-xl text-gray-600 dark:text-gray-400">
           이 키를 누르세요
         </h2>
 
         <div className="space-y-4">
-          {displayKorean && (
-            <div className="text-4xl sm:text-5xl font-bold text-gray-900 dark:text-white">
-              {display.korean}
-            </div>
-          )}
-          {displayEnglish && (
-            <div className="text-6xl sm:text-7xl font-bold text-blue-600 dark:text-blue-400">
-              {display.key}
-            </div>
-          )}
+          <div className="text-5xl sm:text-6xl font-bold text-blue-600 dark:text-blue-400">
+            {display.character}
+          </div>
           <div className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
             {display.seatId}
           </div>

@@ -240,12 +240,10 @@ export default function WordPractice({
 
   const checkWord = useCallback(() => {
     if (!currentWord || isProcessingRef.current) {
-      console.log('[checkWord] Early return - currentWord:', !!currentWord, 'isProcessing:', isProcessingRef.current);
       return;
     }
 
     debugCountRef.current.checkWordCalls++;
-    console.log('[checkWord] Call #' + debugCountRef.current.checkWordCalls + ' - input:', userInput, 'word:', currentWord.word);
     isProcessingRef.current = true;
 
     try {
@@ -301,13 +299,11 @@ export default function WordPractice({
         currentSegmentStartRef.current = null;
       }
     } finally {
-      console.log('[checkWord] Finally block - resetting isProcessing');
       isProcessingRef.current = false;
     }
   }, [currentWord, userInput, filteredWords, availableCharacters, useGeneratedWords, playSound]);
 
   const handleSubmit = (e: React.FormEvent) => {
-    console.log('[handleSubmit] Form submitted');
     e.preventDefault();
     checkWord();
   };
@@ -325,30 +321,24 @@ export default function WordPractice({
       // If Space is already being processed, ignore this duplicate event
       if (spacePressedRef.current) {
         spacePressedRef.current = false; // Reset for next Space keypress
-        console.log('[handleKeyDown] Space already in progress, resetting and returning');
         return;
       }
       spacePressedRef.current = true;
-
-      console.log('[handleKeyDown] Space pressed - isComposing:', isComposingRef.current, 'isProcessing:', isProcessingRef.current);
 
       // Only call checkWord if not composing AND not already processing
       if (!isComposingRef.current && !isProcessingRef.current) {
         console.log('[handleKeyDown] Calling checkWord immediately (not composing)');
         checkWord();
       } else {
-        console.log('[handleKeyDown] Deferring checkWord until composition ends');
       }
     }
   };
 
   const handleCompositionStart = () => {
-    console.log('[handleCompositionStart]');
     isComposingRef.current = true;
   };
 
   const handleCompositionEnd = () => {
-    console.log('[handleCompositionEnd] spacePressedRef:', spacePressedRef.current, 'isProcessing:', isProcessingRef.current);
     isComposingRef.current = false;
     // If space was pressed during IME composition and checkWord isn't already processing, handle it now
     if (spacePressedRef.current && !isProcessingRef.current) {
@@ -356,7 +346,6 @@ export default function WordPractice({
       spacePressedRef.current = false;
       checkWord();
     } else {
-      console.log('[handleCompositionEnd] Not calling checkWord - spacePressedRef:', spacePressedRef.current, 'isProcessing:', isProcessingRef.current);
     }
   };
 

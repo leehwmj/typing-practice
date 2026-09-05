@@ -249,7 +249,6 @@ export default function WordPractice({
     try {
       if (userInput.trim() === currentWord.word) {
         debugCountRef.current.correctCount++;
-        console.log('[checkWord] ✅ CORRECT - calling setStats(correct++) - Total correct:', debugCountRef.current.correctCount);
         playSound(800, 0.2);
         setFeedback('correct');
         setStats((prev) => ({
@@ -287,7 +286,6 @@ export default function WordPractice({
         }
       } else {
         debugCountRef.current.incorrectCount++;
-        console.log('[checkWord] ❌ INCORRECT - calling setStats(incorrect++) - Total incorrect:', debugCountRef.current.incorrectCount);
         playSound(300, 0.2);
         setFeedback('incorrect');
         setStats((prev) => ({
@@ -327,7 +325,6 @@ export default function WordPractice({
 
       // Only call checkWord if not composing AND not already processing
       if (!isComposingRef.current && !isProcessingRef.current) {
-        console.log('[handleKeyDown] Calling checkWord immediately (not composing)');
         checkWord();
       } else {
       }
@@ -342,7 +339,6 @@ export default function WordPractice({
     isComposingRef.current = false;
     // If space was pressed during IME composition and checkWord isn't already processing, handle it now
     if (spacePressedRef.current && !isProcessingRef.current) {
-      console.log('[handleCompositionEnd] Calling checkWord (space was pressed during composition)');
       spacePressedRef.current = false;
       checkWord();
     } else {

@@ -300,7 +300,7 @@ export default function PracticeBoard({
             )}
 
             {/* Character display */}
-            <div className="text-9xl font-bold text-blue-600 relative z-10">
+            <div className="text-9xl font-bold text-blue-600 relative z-10" style={{ fontFamily: '"S-Arial", Arial, sans-serif' }}>
               {display.character}
             </div>
           </div>

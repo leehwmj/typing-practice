@@ -63,7 +63,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen flex flex-col bg-white dark:bg-gray-900">
-      <header className="bg-blue-600 dark:bg-blue-800 text-white py-4 sm:py-6">
+      <header className="bg-blue-600 dark:bg-blue-800 text-white py-4 sm:py-6 cursor-pointer hover:bg-blue-700 dark:hover:bg-blue-900 transition-colors" onClick={handleBackToMain}>
         <h1 className="text-3xl sm:text-4xl font-bold text-center px-4">
           타자 연습기
         </h1>

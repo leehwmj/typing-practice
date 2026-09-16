@@ -138,7 +138,6 @@ export default function WordPractice({
   const [typingSegments, setTypingSegments] = useState<number[]>([]);
   const currentSegmentStartRef = useRef<number | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const spacePressedRef = useRef(false); // Track if Space was already pressed (to ignore Windows IME duplicate)
   const isProcessingRef = useRef(false); // Prevent duplicate checkWord() calls
   const isComposingRef = useRef(false); // Use ref instead of state for synchronous updates
   const debugCountRef = useRef({ checkWordCalls: 0, correctCount: 0, incorrectCount: 0 });
@@ -318,51 +317,39 @@ export default function WordPractice({
     }
 
     if (e.code === 'Space') {
-      e.preventDefault();
-      e.stopPropagation();
-
-      console.log('[handleKeyDown Space] spacePressedRef:', spacePressedRef.current, 'isComposing:', isComposingRef.current);
-
-      // If Space was already pressed, this is the Windows IME duplicate event - ignore it
-      if (spacePressedRef.current) {
-        console.log('[handleKeyDown Space] Ignoring duplicate Space (Windows IME)');
-        spacePressedRef.current = false;
-        return;
-      }
-
-      spacePressedRef.current = true;
-
-      // Only call checkWord if not composing AND not already processing
-      if (!isComposingRef.current && !isProcessingRef.current) {
-        console.log('[handleKeyDown Space] Calling checkWord immediately');
-        spacePressedRef.current = false; // Reset before calling
-        checkWord();
-      } else {
-        console.log('[handleKeyDown Space] Deferring checkWord (composing)');
-      }
+      // Don't preventDefault - let Space be typed normally
+      // onChange will detect it and call checkWord
+      console.log('[handleKeyDown Space] Space pressed, onChange will handle it');
     }
   };
 
   const handleCompositionStart = () => {
     console.log('[handleCompositionStart] isComposing: true');
     isComposingRef.current = true;
-    spacePressedRef.current = false; // Reset for new composition
   };
 
   const handleCompositionEnd = () => {
     console.log('[handleCompositionEnd] isComposing: false, userInput:', userInput);
     isComposingRef.current = false;
-    // Don't call checkWord here - let the second Space keydown handle it
+    // onChange will handle Space detection
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = e.target.value;
-    console.log('[onChange] value:', newValue, 'isComposing:', isComposingRef.current, 'spacePressedRef:', spacePressedRef.current);
+    let newValue = e.target.value;
+    console.log('[onChange] value:', newValue, 'isComposing:', isComposingRef.current);
 
-    // If Space was just pressed and we're starting a new composition,
-    // wait for it to complete before updating userInput
-    if (spacePressedRef.current && isComposingRef.current && newValue.length > 0) {
-      console.log('[onChange] Skipping first input after Space (waiting for composition)');
+    // If Space was typed, remove it and trigger checkWord
+    if (newValue.includes(' ')) {
+      console.log('[onChange] Space detected, removing it and calling checkWord');
+      newValue = newValue.replace(' ', '');
+      setUserInput(newValue);
+
+      // Use setTimeout to let the state update complete
+      setTimeout(() => {
+        if (!isProcessingRef.current) {
+          checkWord();
+        }
+      }, 0);
       return;
     }
 

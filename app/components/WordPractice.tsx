@@ -243,11 +243,13 @@ export default function WordPractice({
       return;
     }
 
+    console.log('[checkWord] START - userInput:', userInput, 'currentWord:', currentWord.word);
     debugCountRef.current.checkWordCalls++;
     isProcessingRef.current = true;
 
     try {
       if (userInput.trim() === currentWord.word) {
+        console.log('[checkWord] CORRECT');
         debugCountRef.current.correctCount++;
         playSound(800, 0.2);
         setFeedback('correct');
@@ -282,9 +284,11 @@ export default function WordPractice({
 
           setCurrentWord(nextWord);
           setPreviousWordLength(nextWord.word.length);
+          console.log('[checkWord] Resetting userInput');
           setUserInput('');
         }
       } else {
+        console.log('[checkWord] INCORRECT');
         debugCountRef.current.incorrectCount++;
         playSound(300, 0.2);
         setFeedback('incorrect');
@@ -292,6 +296,7 @@ export default function WordPractice({
           ...prev,
           incorrect: prev.incorrect + 1,
         }));
+        console.log('[checkWord] Resetting userInput');
         setUserInput('');
         // Reset timing for next word attempt to prevent CPM inflation
         currentSegmentStartRef.current = null;
@@ -313,6 +318,7 @@ export default function WordPractice({
     }
 
     if (e.code === 'Space') {
+      console.log('[handleKeyDown Space] isComposing:', isComposingRef.current, 'isProcessing:', isProcessingRef.current);
       e.preventDefault();
       e.stopPropagation();
 
@@ -325,8 +331,10 @@ export default function WordPractice({
 
       // Only call checkWord if not composing AND not already processing
       if (!isComposingRef.current && !isProcessingRef.current) {
+        console.log('[handleKeyDown Space] Calling checkWord immediately');
         checkWord();
       } else {
+        console.log('[handleKeyDown Space] Deferring checkWord (composing or processing)');
       }
     }
   };

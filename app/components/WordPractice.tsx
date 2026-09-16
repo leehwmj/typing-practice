@@ -284,8 +284,6 @@ export default function WordPractice({
 
           setCurrentWord(nextWord);
           setPreviousWordLength(nextWord.word.length);
-          // Reset spacePressedRef when moving to next word to prevent duplicate Space keydown handling
-          spacePressedRef.current = false;
           console.log('[checkWord] Resetting userInput');
           setUserInput('');
         }
@@ -305,6 +303,7 @@ export default function WordPractice({
       }
     } finally {
       isProcessingRef.current = false;
+      spacePressedRef.current = false; // Reset spacePressedRef when checkWord completes to allow next Space
     }
   }, [currentWord, userInput, filteredWords, availableCharacters, useGeneratedWords, playSound]);
 
@@ -320,15 +319,16 @@ export default function WordPractice({
     }
 
     if (e.code === 'Space') {
-      console.log('[handleKeyDown Space] isComposing:', isComposingRef.current, 'isProcessing:', isProcessingRef.current);
+      console.log('[handleKeyDown Space] isComposing:', isComposingRef.current, 'isProcessing:', isProcessingRef.current, 'spacePressedRef:', spacePressedRef.current);
       e.preventDefault();
       e.stopPropagation();
 
-      // If Space is already being processed, ignore this duplicate event
-      if (spacePressedRef.current) {
-        spacePressedRef.current = false; // Reset for next Space keypress
+      // If Space is already pending and composition has finished, this is a duplicate (Windows IME issue)
+      if (spacePressedRef.current && !isComposingRef.current) {
+        console.log('[handleKeyDown Space] Ignoring duplicate Space after composition end');
         return;
       }
+
       spacePressedRef.current = true;
 
       // Only call checkWord if not composing AND not already processing
@@ -353,9 +353,8 @@ export default function WordPractice({
     isComposingRef.current = false;
     // If space was pressed during IME composition and checkWord isn't already processing, handle it now
     if (spacePressedRef.current && !isProcessingRef.current) {
-      spacePressedRef.current = false;
+      // Don't reset spacePressedRef here - let checkWord handle it to prevent duplicate Space events
       checkWord();
-    } else {
     }
   };
 

@@ -138,7 +138,7 @@ export default function WordPractice({
   const [typingSegments, setTypingSegments] = useState<number[]>([]);
   const currentSegmentStartRef = useRef<number | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const spacePressedRef = useRef(false);
+  const lastSpaceTimeRef = useRef<number>(0); // Track last Space keydown time to prevent Windows IME duplicates
   const isProcessingRef = useRef(false); // Prevent duplicate checkWord() calls
   const isComposingRef = useRef(false); // Use ref instead of state for synchronous updates
   const debugCountRef = useRef({ checkWordCalls: 0, correctCount: 0, incorrectCount: 0 });
@@ -303,7 +303,6 @@ export default function WordPractice({
       }
     } finally {
       isProcessingRef.current = false;
-      spacePressedRef.current = false; // Reset spacePressedRef when checkWord completes to allow next Space
     }
   }, [currentWord, userInput, filteredWords, availableCharacters, useGeneratedWords, playSound]);
 
@@ -319,17 +318,20 @@ export default function WordPractice({
     }
 
     if (e.code === 'Space') {
-      console.log('[handleKeyDown Space] isComposing:', isComposingRef.current, 'isProcessing:', isProcessingRef.current, 'spacePressedRef:', spacePressedRef.current);
+      const now = Date.now();
+      const timeSinceLastSpace = now - lastSpaceTimeRef.current;
+
+      console.log('[handleKeyDown Space] isComposing:', isComposingRef.current, 'isProcessing:', isProcessingRef.current, 'timeSinceLastSpace:', timeSinceLastSpace);
       e.preventDefault();
       e.stopPropagation();
 
-      // If Space is already pending and composition has finished, this is a duplicate (Windows IME issue)
-      if (spacePressedRef.current && !isComposingRef.current) {
-        console.log('[handleKeyDown Space] Ignoring duplicate Space after composition end');
+      // Ignore duplicate Space events within 50ms (Windows IME generates 2 Space keydowns)
+      if (timeSinceLastSpace < 50) {
+        console.log('[handleKeyDown Space] Ignoring duplicate Space (Windows IME)');
         return;
       }
 
-      spacePressedRef.current = true;
+      lastSpaceTimeRef.current = now;
 
       // Only call checkWord if not composing AND not already processing
       if (!isComposingRef.current && !isProcessingRef.current) {
@@ -342,18 +344,18 @@ export default function WordPractice({
   };
 
   const handleCompositionStart = () => {
-    console.log('[handleCompositionStart] isComposing: true, spacePressedRef:', spacePressedRef.current);
+    console.log('[handleCompositionStart] isComposing: true');
     isComposingRef.current = true;
-    // Reset spacePressedRef for new composition
-    spacePressedRef.current = false;
   };
 
   const handleCompositionEnd = () => {
     console.log('[handleCompositionEnd] isComposing: false, userInput:', userInput);
     isComposingRef.current = false;
-    // If space was pressed during IME composition and checkWord isn't already processing, handle it now
-    if (spacePressedRef.current && !isProcessingRef.current) {
-      // Don't reset spacePressedRef here - let checkWord handle it to prevent duplicate Space events
+
+    // Check if Space was pressed during composition
+    const timeSinceLastSpace = Date.now() - lastSpaceTimeRef.current;
+    if (timeSinceLastSpace < 100 && !isProcessingRef.current) {
+      console.log('[handleCompositionEnd] Space pending, calling checkWord now');
       checkWord();
     }
   };

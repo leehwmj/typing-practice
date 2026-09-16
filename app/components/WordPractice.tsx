@@ -284,6 +284,8 @@ export default function WordPractice({
 
           setCurrentWord(nextWord);
           setPreviousWordLength(nextWord.word.length);
+          // Reset spacePressedRef when moving to next word to prevent duplicate Space keydown handling
+          spacePressedRef.current = false;
           console.log('[checkWord] Resetting userInput');
           setUserInput('');
         }

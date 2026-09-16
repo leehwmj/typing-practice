@@ -138,10 +138,9 @@ export default function WordPractice({
   const [typingSegments, setTypingSegments] = useState<number[]>([]);
   const currentSegmentStartRef = useRef<number | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const lastSpaceTimeRef = useRef<number>(0); // Track last Space keydown time to prevent Windows IME duplicates
+  const spacePressedRef = useRef(false); // Track if Space was already pressed (to ignore Windows IME duplicate)
   const isProcessingRef = useRef(false); // Prevent duplicate checkWord() calls
   const isComposingRef = useRef(false); // Use ref instead of state for synchronous updates
-  const compositionEndProcessedRef = useRef(false); // Flag to prevent duplicate Space after compositionEnd calls checkWord
   const debugCountRef = useRef({ checkWordCalls: 0, correctCount: 0, incorrectCount: 0 });
   const audioContextRef = useRef<AudioContext | null>(null);
 
@@ -322,21 +321,24 @@ export default function WordPractice({
       e.preventDefault();
       e.stopPropagation();
 
-      console.log('[handleKeyDown Space] compositionEndProcessed:', compositionEndProcessedRef.current, 'isComposing:', isComposingRef.current);
+      console.log('[handleKeyDown Space] spacePressedRef:', spacePressedRef.current, 'isComposing:', isComposingRef.current);
 
-      // If compositionEnd just called checkWord, ignore this Space keydown
-      if (compositionEndProcessedRef.current) {
-        console.log('[handleKeyDown Space] Ignoring Space (compositionEnd already processed it)');
-        compositionEndProcessedRef.current = false;
+      // If Space was already pressed, this is the Windows IME duplicate event - ignore it
+      if (spacePressedRef.current) {
+        console.log('[handleKeyDown Space] Ignoring duplicate Space (Windows IME)');
+        spacePressedRef.current = false;
         return;
       }
+
+      spacePressedRef.current = true;
 
       // Only call checkWord if not composing AND not already processing
       if (!isComposingRef.current && !isProcessingRef.current) {
         console.log('[handleKeyDown Space] Calling checkWord immediately');
+        spacePressedRef.current = false; // Reset before calling
         checkWord();
       } else {
-        console.log('[handleKeyDown Space] Deferring checkWord (composing or processing)');
+        console.log('[handleKeyDown Space] Deferring checkWord (composing)');
       }
     }
   };
@@ -344,19 +346,13 @@ export default function WordPractice({
   const handleCompositionStart = () => {
     console.log('[handleCompositionStart] isComposing: true');
     isComposingRef.current = true;
-    compositionEndProcessedRef.current = false;
+    spacePressedRef.current = false; // Reset for new composition
   };
 
   const handleCompositionEnd = () => {
     console.log('[handleCompositionEnd] isComposing: false, userInput:', userInput);
     isComposingRef.current = false;
-
-    // Call checkWord if Space was pressed during composition
-    if (!isProcessingRef.current) {
-      console.log('[handleCompositionEnd] Calling checkWord');
-      compositionEndProcessedRef.current = true; // Mark that we're handling Space here
-      checkWord();
-    }
+    // Don't call checkWord here - let the second Space keydown handle it
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {

@@ -141,6 +141,7 @@ export default function WordPractice({
   const lastSpaceTimeRef = useRef<number>(0); // Track last Space keydown time to prevent Windows IME duplicates
   const isProcessingRef = useRef(false); // Prevent duplicate checkWord() calls
   const isComposingRef = useRef(false); // Use ref instead of state for synchronous updates
+  const compositionEndProcessedRef = useRef(false); // Flag to prevent duplicate Space after compositionEnd calls checkWord
   const debugCountRef = useRef({ checkWordCalls: 0, correctCount: 0, incorrectCount: 0 });
   const audioContextRef = useRef<AudioContext | null>(null);
 
@@ -318,21 +319,17 @@ export default function WordPractice({
     }
 
     if (e.code === 'Space') {
-      const now = Date.now();
-      const timeSinceLastSpace = now - lastSpaceTimeRef.current;
-
-      console.log('[handleKeyDown Space] now:', now, 'lastSpaceTime:', lastSpaceTimeRef.current, 'timeSinceLastSpace:', timeSinceLastSpace, 'isComposing:', isComposingRef.current);
       e.preventDefault();
       e.stopPropagation();
 
-      // Ignore duplicate Space events within 50ms (Windows IME generates 2 Space keydowns)
-      if (timeSinceLastSpace < 50 && lastSpaceTimeRef.current > 0) {
-        console.log('[handleKeyDown Space] Ignoring duplicate Space (Windows IME), timeSinceLastSpace:', timeSinceLastSpace);
+      console.log('[handleKeyDown Space] compositionEndProcessed:', compositionEndProcessedRef.current, 'isComposing:', isComposingRef.current);
+
+      // If compositionEnd just called checkWord, ignore this Space keydown
+      if (compositionEndProcessedRef.current) {
+        console.log('[handleKeyDown Space] Ignoring Space (compositionEnd already processed it)');
+        compositionEndProcessedRef.current = false;
         return;
       }
-
-      lastSpaceTimeRef.current = now;
-      console.log('[handleKeyDown Space] Updated lastSpaceTime to:', now);
 
       // Only call checkWord if not composing AND not already processing
       if (!isComposingRef.current && !isProcessingRef.current) {
@@ -345,22 +342,19 @@ export default function WordPractice({
   };
 
   const handleCompositionStart = () => {
-    console.log('[handleCompositionStart] isComposing: true, lastSpaceTime was:', lastSpaceTimeRef.current);
+    console.log('[handleCompositionStart] isComposing: true');
     isComposingRef.current = true;
-    // Reset space timer for new composition cycle
-    lastSpaceTimeRef.current = 0;
+    compositionEndProcessedRef.current = false;
   };
 
   const handleCompositionEnd = () => {
-    const now = Date.now();
-    const timeSinceLastSpace = now - lastSpaceTimeRef.current;
-    console.log('[handleCompositionEnd] isComposing: false, userInput:', userInput, 'timeSinceLastSpace:', timeSinceLastSpace, 'lastSpaceTime:', lastSpaceTimeRef.current);
+    console.log('[handleCompositionEnd] isComposing: false, userInput:', userInput);
     isComposingRef.current = false;
 
-    // Check if Space was pressed during composition
-    if (timeSinceLastSpace < 100 && lastSpaceTimeRef.current > 0 && !isProcessingRef.current) {
-      console.log('[handleCompositionEnd] Space was pressed during composition, calling checkWord now');
-      lastSpaceTimeRef.current = 0; // Clear the timer so second Space is allowed
+    // Call checkWord if Space was pressed during composition
+    if (!isProcessingRef.current) {
+      console.log('[handleCompositionEnd] Calling checkWord');
+      compositionEndProcessedRef.current = true; // Mark that we're handling Space here
       checkWord();
     }
   };

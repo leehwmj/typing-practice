@@ -340,8 +340,10 @@ export default function WordPractice({
   };
 
   const handleCompositionStart = () => {
-    console.log('[handleCompositionStart] isComposing: true');
+    console.log('[handleCompositionStart] isComposing: true, spacePressedRef:', spacePressedRef.current);
     isComposingRef.current = true;
+    // Reset spacePressedRef for new composition
+    spacePressedRef.current = false;
   };
 
   const handleCompositionEnd = () => {

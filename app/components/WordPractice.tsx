@@ -357,7 +357,15 @@ export default function WordPractice({
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
-    console.log('[onChange] value:', newValue, 'isComposing:', isComposingRef.current);
+    console.log('[onChange] value:', newValue, 'isComposing:', isComposingRef.current, 'spacePressedRef:', spacePressedRef.current);
+
+    // If Space was just pressed and we're starting a new composition,
+    // wait for it to complete before updating userInput
+    if (spacePressedRef.current && isComposingRef.current && newValue.length > 0) {
+      console.log('[onChange] Skipping first input after Space (waiting for composition)');
+      return;
+    }
+
     setUserInput(newValue);
   };
 

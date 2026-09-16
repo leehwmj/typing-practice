@@ -332,10 +332,12 @@ export default function WordPractice({
   };
 
   const handleCompositionStart = () => {
+    console.log('[handleCompositionStart] isComposing: true');
     isComposingRef.current = true;
   };
 
   const handleCompositionEnd = () => {
+    console.log('[handleCompositionEnd] isComposing: false, userInput:', userInput);
     isComposingRef.current = false;
     // If space was pressed during IME composition and checkWord isn't already processing, handle it now
     if (spacePressedRef.current && !isProcessingRef.current) {
@@ -343,6 +345,12 @@ export default function WordPractice({
       checkWord();
     } else {
     }
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value;
+    console.log('[onChange] value:', newValue, 'isComposing:', isComposingRef.current);
+    setUserInput(newValue);
   };
 
   const accuracy =
@@ -420,7 +428,7 @@ export default function WordPractice({
             ref={inputRef}
             type="text"
             value={userInput}
-            onChange={(e) => setUserInput(e.target.value)}
+            onChange={handleChange}
             onKeyDown={handleKeyDown}
             onCompositionStart={handleCompositionStart}
             onCompositionEnd={handleCompositionEnd}
